@@ -1,0 +1,17 @@
+appId: com.mofish.browser
+productName: MoFish Browser
+directories:
+  output: release
+files:
+  - out/**
+  - package.json
+mac:
+  category: public.app-category.productivity
+  target:
+    - dmg
+win:
+  target:
+    - nsis
+linux:
+  target:
+    - AppImage
