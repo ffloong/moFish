@@ -1,10 +1,27 @@
 {
   "name": "mofish",
   "version": "1.0.0",
-  "description": "MoFish Browser - multi-window web page manager",
+  "description": "MoFish Browser - Electron multi-window web page manager with floating, transparent, always-on-top pages",
   "main": "out/main/index.js",
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "electron",
+    "browser",
+    "multi-window",
+    "floating-window",
+    "always-on-top",
+    "web-page-manager",
+    "productivity",
+    "多窗口浏览器"
+  ],
+  "author": "ffloong",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ffloong/moFish.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ffloong/moFish/issues"
+  },
+  "homepage": "https://github.com/ffloong/moFish#readme",
   "license": "MIT",
   "type": "commonjs",
   "scripts": {
