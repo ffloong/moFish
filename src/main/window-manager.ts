@@ -1,11 +1,13 @@
 import { BrowserWindow, screen } from 'electron';
-import type { PageState, CreatePageRequest, AppSettings, DisplayInfo } from '../renderer/shared/types';
+import type {
+  PageState,
+  CreatePageRequest,
+  AppSettings,
+  DisplayInfo,
+} from '../renderer/shared/types';
 import type { LayoutPreset } from '../renderer/shared/utils/bounds';
-import { computeLayoutBounds } from '../renderer/shared/utils/bounds';
-import {
-  MIN_OPACITY,
-  MAX_OPACITY,
-} from '../renderer/shared/constants';
+import { computeLayoutBounds, resolveTargetDisplay } from '../renderer/shared/utils/bounds';
+import { MIN_OPACITY, MAX_OPACITY } from '../renderer/shared/constants';
 import { createPageWindow, type PageWindowDeps } from './page-window';
 import type { PersistenceManager } from './persistence';
 
@@ -69,7 +71,7 @@ export class WindowManager {
           frameMode: 'framed',
         },
       },
-      this.deps()
+      this.deps(),
     );
 
     const handle: PageHandle = { id, win, state };
@@ -144,7 +146,7 @@ export class WindowManager {
     const all = this.listStates();
     if (all.length === 0) return undefined;
     return this.pages.get(
-      all.reduce((acc, cur) => (cur.lastActiveAt > acc.lastActiveAt ? cur : acc)).id
+      all.reduce((acc, cur) => (cur.lastActiveAt > acc.lastActiveAt ? cur : acc)).id,
     );
   }
 
@@ -250,10 +252,8 @@ export class WindowManager {
     if (!handle) return;
     const currentBounds = handle.win.getBounds();
     const display =
-      displayId != null
-        ? screen.getAllDisplays().find((d) => d.id === displayId) ??
-          screen.getDisplayMatching(currentBounds)
-        : screen.getDisplayMatching(currentBounds);
+      resolveTargetDisplay(screen.getAllDisplays(), displayId, currentBounds) ??
+      screen.getPrimaryDisplay();
     const bounds = computeLayoutBounds(preset, display.workArea, currentBounds);
     // Clamp to the target display workArea
     const wa = display.workArea;

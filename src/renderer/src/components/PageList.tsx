@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { PageState, DisplayInfo } from '../../shared/types';
-import type { LayoutPreset } from '../../shared/utils/bounds';
+import { resolveTargetDisplay, type LayoutPreset } from '../../shared/utils/bounds';
 import { displayUrl } from '../../shared/utils/url';
 import { usePageActions } from '../store/pagesStore';
 
@@ -17,6 +17,7 @@ function PageCard({ page }: { page: PageState }) {
   const actions = usePageActions();
   const [displays, setDisplays] = useState<DisplayInfo[]>([]);
   const [targetDisplayId, setTargetDisplayId] = useState<number | undefined>(undefined);
+  const currentDisplay = resolveTargetDisplay(displays, undefined, page.bounds);
 
   useEffect(() => {
     void window.moFish.displays.getAll().then(setDisplays);
@@ -36,7 +37,9 @@ function PageCard({ page }: { page: PageState }) {
         {page.favicon ? (
           <img src={page.favicon} alt="" className="h-5 w-5 rounded" referrerPolicy="no-referrer" />
         ) : (
-          <div className="flex h-5 w-5 items-center justify-center rounded bg-neutral-200 text-xs">🌐</div>
+          <div className="flex h-5 w-5 items-center justify-center rounded bg-neutral-200 text-xs">
+            🌐
+          </div>
         )}
         <button
           className="min-w-0 flex-1 truncate text-left font-medium hover:text-blue-600"
@@ -47,10 +50,14 @@ function PageCard({ page }: { page: PageState }) {
         </button>
         <div className="flex gap-1">
           {page.alwaysOnTop && (
-            <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">置顶</span>
+            <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
+              置顶
+            </span>
           )}
           {!page.visible && (
-            <span className="rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600">隐藏</span>
+            <span className="rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600">
+              隐藏
+            </span>
           )}
           {page.opacity < 1 && (
             <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
@@ -74,7 +81,7 @@ function PageCard({ page }: { page: PageState }) {
             onClick={() => setTargetDisplayId(undefined)}
             title="按窗口当前所在屏幕计算布局"
           >
-            当前
+            当前{currentDisplay ? `（${currentDisplay.label}）` : ''}
           </button>
           {displays.map((d) => (
             <button
@@ -127,7 +134,9 @@ function PageCard({ page }: { page: PageState }) {
             onChange={(e) => void actions.setOpacity(page.id, Number(e.target.value) / 100)}
             className="w-28 accent-blue-600"
           />
-          <span className="w-8 tabular-nums text-neutral-500">{Math.round(page.opacity * 100)}%</span>
+          <span className="w-8 tabular-nums text-neutral-500">
+            {Math.round(page.opacity * 100)}%
+          </span>
         </label>
 
         {LAYOUTS.map((l) => (
@@ -135,7 +144,11 @@ function PageCard({ page }: { page: PageState }) {
             key={l.key}
             className="rounded border border-neutral-300 px-2 py-1 hover:bg-neutral-100"
             onClick={applyLayout.bind(null, l.key)}
-            title={targetDisplayId !== undefined ? `布局到${displays.find((d) => d.id === targetDisplayId)?.label}` : '按窗口当前屏幕布局'}
+            title={
+              targetDisplayId !== undefined
+                ? `布局到${displays.find((d) => d.id === targetDisplayId)?.label}`
+                : '按窗口当前屏幕布局'
+            }
           >
             {l.label}
           </button>

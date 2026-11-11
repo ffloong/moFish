@@ -13,6 +13,9 @@ export interface PageWindowDeps {
 }
 
 const WEB_PREFERENCES = {
+  // One durable Chromium profile shared by every page window. This preserves
+  // cookies, localStorage, IndexedDB, service workers, and login sessions.
+  partition: 'persist:mofish',
   contextIsolation: true,
   nodeIntegration: false,
   sandbox: true,
@@ -24,7 +27,7 @@ export function buildPageContextMenu(
   id: string,
   state: PageState,
   deps: PageWindowDeps,
-  win: BrowserWindow
+  win: BrowserWindow,
 ): Menu {
   const stepOpacity = (delta: number) => {
     const next = Math.min(MAX_OPACITY, Math.max(MIN_OPACITY, state.opacity + delta));
@@ -73,7 +76,7 @@ export function buildPageContextMenu(
 export function createPageWindow(
   id: string,
   request: CreatePageRequest,
-  deps: PageWindowDeps
+  deps: PageWindowDeps,
 ): { win: BrowserWindow; state: PageState } {
   const now = Date.now();
 
@@ -104,14 +107,13 @@ export function createPageWindow(
     lastActiveAt: now,
   };
 
-
   win.loadURL(request.url).catch(() => {
     // fall back to an error page inline
     win.loadURL(
       'data:text/html;charset=utf-8,' +
         encodeURIComponent(
-          `<h2 style="font-family:sans-serif">无法加载页面</h2><p style="font-family:sans-serif">${request.url}</p>`
-        )
+          `<h2 style="font-family:sans-serif">无法加载页面</h2><p style="font-family:sans-serif">${request.url}</p>`,
+        ),
     );
   });
 
