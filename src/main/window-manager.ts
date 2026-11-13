@@ -8,6 +8,8 @@ import type {
 import type { LayoutPreset } from '../renderer/shared/utils/bounds';
 import { computeLayoutBounds, resolveTargetDisplay } from '../renderer/shared/utils/bounds';
 import { MIN_OPACITY, MAX_OPACITY } from '../renderer/shared/constants';
+import { normalizeBorderColor } from '../renderer/shared/utils/appearance';
+import { applyPageBorder } from './window-appearance';
 import { createPageWindow, type PageWindowDeps } from './page-window';
 import type { PersistenceManager } from './persistence';
 
@@ -69,6 +71,8 @@ export class WindowManager {
           opacity: opts.opacity ?? this.settings.defaultOpacity,
           alwaysOnTop: opts.alwaysOnTop ?? this.settings.defaultAlwaysOnTop,
           frameMode: 'framed',
+          title: opts.title ?? null,
+          borderColor: normalizeBorderColor(opts.borderColor),
         },
       },
       this.deps(),
@@ -108,8 +112,11 @@ export class WindowManager {
       state.visible = win.isVisible();
     });
 
-    win.webContents.on('page-title-updated', (_e, title) => {
-      state.title = title;
+    win.webContents.on('page-title-updated', (event, title) => {
+      state.webTitle = title;
+      state.title = state.customTitle || title;
+      if (state.customTitle) event.preventDefault();
+      win.setTitle(state.title);
       this.broadcast(IPC_STATE_CHANGED, { id, state });
       void this.scheduleSave();
     });
@@ -206,6 +213,26 @@ export class WindowManager {
       height: Math.max(150, bounds.height ?? current.height),
     });
     handle.state.bounds = handle.win.getBounds();
+    this.broadcast(IPC_STATE_CHANGED, { id, state: handle.state });
+    void this.scheduleSave();
+  }
+
+  setTitle(id: string, title: string | null): void {
+    const handle = this.pages.get(id);
+    if (!handle) return;
+    const customTitle = title?.trim() || null;
+    handle.state.customTitle = customTitle;
+    handle.state.title = customTitle || handle.state.webTitle || '';
+    handle.win.setTitle(handle.state.title);
+    this.broadcast(IPC_STATE_CHANGED, { id, state: handle.state });
+    void this.scheduleSave();
+  }
+
+  setBorderColor(id: string, color: string): void {
+    const handle = this.pages.get(id);
+    if (!handle) return;
+    handle.state.borderColor = normalizeBorderColor(color, handle.state.borderColor);
+    applyPageBorder(handle.win, handle.state.borderColor);
     this.broadcast(IPC_STATE_CHANGED, { id, state: handle.state });
     void this.scheduleSave();
   }
@@ -308,6 +335,8 @@ export class WindowManager {
           bounds: p.bounds,
           opacity: p.opacity,
           alwaysOnTop: p.alwaysOnTop,
+          title: p.customTitle ?? null,
+          borderColor: p.borderColor,
         },
       });
     }

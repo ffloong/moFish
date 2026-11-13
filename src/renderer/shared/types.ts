@@ -12,6 +12,10 @@ export interface PageState {
   id: string;
   url: string;
   title: string;
+  /** Actual page title. `title` contains the custom title when one is set. */
+  webTitle?: string | null;
+  customTitle?: string | null;
+  borderColor: string;
   favicon: string | null;
   bounds: PageBounds;
   opacity: number;
@@ -25,9 +29,10 @@ export interface PageState {
 
 export interface CreatePageRequest {
   url: string;
-  options?: Partial<
-    Pick<PageState, 'bounds' | 'opacity' | 'alwaysOnTop' | 'frameMode'>
-  >;
+  options?: Partial<Pick<PageState, 'bounds' | 'opacity' | 'alwaysOnTop' | 'frameMode'>> & {
+    title?: string | null;
+    borderColor?: string;
+  };
 }
 
 export interface UpdatePageRequest {
@@ -41,8 +46,10 @@ export interface UpdatePageRequest {
       | 'alwaysOnTopLevel'
       | 'visible'
       | 'frameMode'
-      | 'title'
-    >
+      | 'borderColor'
+    > & {
+      title?: string | null;
+    }
   >;
 }
 

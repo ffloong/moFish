@@ -2,6 +2,8 @@ import { BrowserWindow, Menu, shell, clipboard } from 'electron';
 import type { MenuItemConstructorOptions } from 'electron';
 import { MIN_OPACITY, MAX_OPACITY, OPACITY_STEP } from '../renderer/shared/constants';
 import type { PageState, CreatePageRequest } from '../renderer/shared/types';
+import { normalizeBorderColor } from '../renderer/shared/utils/appearance';
+import { applyPageBorder } from './window-appearance';
 
 export interface PageWindowDeps {
   getPageState(id: string): PageState | undefined;
@@ -88,14 +90,17 @@ export function createPageWindow(
     opacity: Math.min(MAX_OPACITY, Math.max(MIN_OPACITY, request.options?.opacity ?? 1.0)),
     alwaysOnTop: request.options?.alwaysOnTop ?? false,
     frame: true,
-    title: 'New Page',
+    title: request.options?.title || 'New Page',
     webPreferences: WEB_PREFERENCES,
   });
 
   const state: PageState = {
     id,
     url: request.url,
-    title: '',
+    title: request.options?.title || '',
+    webTitle: '',
+    customTitle: request.options?.title || null,
+    borderColor: normalizeBorderColor(request.options?.borderColor),
     favicon: null,
     bounds: win.getBounds(),
     opacity: win.getOpacity(),
@@ -106,6 +111,11 @@ export function createPageWindow(
     createdAt: now,
     lastActiveAt: now,
   };
+
+  win.webContents.on('did-finish-load', () => {
+    applyPageBorder(win, state.borderColor);
+  });
+  applyPageBorder(win, state.borderColor);
 
   win.loadURL(request.url).catch(() => {
     // fall back to an error page inline

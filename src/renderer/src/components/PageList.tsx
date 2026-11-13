@@ -3,6 +3,7 @@ import type { PageState, DisplayInfo } from '../../shared/types';
 import { resolveTargetDisplay, type LayoutPreset } from '../../shared/utils/bounds';
 import { displayUrl } from '../../shared/utils/url';
 import { usePageActions } from '../store/pagesStore';
+import { BORDER_PRESETS } from '../../shared/utils/appearance';
 
 const LAYOUTS: { key: LayoutPreset; label: string }[] = [
   { key: 'left', label: '左半' },
@@ -17,7 +18,12 @@ function PageCard({ page }: { page: PageState }) {
   const actions = usePageActions();
   const [displays, setDisplays] = useState<DisplayInfo[]>([]);
   const [targetDisplayId, setTargetDisplayId] = useState<number | undefined>(undefined);
+  const [titleDraft, setTitleDraft] = useState(page.customTitle ?? '');
   const currentDisplay = resolveTargetDisplay(displays, undefined, page.bounds);
+
+  const saveTitle = () => {
+    void actions.updatePage(page.id, { title: titleDraft.trim() || null });
+  };
 
   useEffect(() => {
     void window.moFish.displays.getAll().then(setDisplays);
@@ -68,6 +74,41 @@ function PageCard({ page }: { page: PageState }) {
       </div>
 
       <div className="mt-1 truncate text-xs text-neutral-500">{displayUrl(page.url)}</div>
+
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+        <label className="flex min-w-56 flex-1 items-center gap-2">
+          <span className="text-neutral-500">标题</span>
+          <input
+            value={titleDraft}
+            onChange={(e) => setTitleDraft(e.target.value)}
+            onBlur={saveTitle}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                saveTitle();
+                e.currentTarget.blur();
+              }
+            }}
+            placeholder={page.webTitle || displayUrl(page.url)}
+            className="w-full min-w-40 rounded border border-neutral-300 px-2 py-1 outline-none focus:border-blue-500"
+          />
+        </label>
+        <div className="flex items-center gap-1">
+          <span className="text-neutral-500">边框</span>
+          {BORDER_PRESETS.map((preset) => (
+            <button
+              key={preset.key}
+              className={`rounded border px-2 py-1 ${
+                page.borderColor === preset.color
+                  ? 'border-blue-400 bg-blue-50 text-blue-700'
+                  : 'border-neutral-300 hover:bg-neutral-100'
+              }`}
+              onClick={() => void actions.updatePage(page.id, { borderColor: preset.color })}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {displays.length > 1 && (
         <div className="mt-2 flex items-center gap-1 text-xs">

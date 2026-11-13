@@ -59,13 +59,19 @@ export function registerIpcHandlers(manager: WindowManager): void {
     if (updates.bounds) manager.setBounds(id, updates.bounds);
     if (typeof updates.opacity === 'number') manager.setOpacity(id, updates.opacity);
     if (typeof updates.alwaysOnTop === 'boolean') manager.setAlwaysOnTop(id, updates.alwaysOnTop);
+    if (updates.title !== undefined) manager.setTitle(id, updates.title);
+    if (updates.borderColor !== undefined) manager.setBorderColor(id, updates.borderColor);
     if (updates.visible === true) manager.show(id);
     if (updates.visible === false) manager.hide(id);
     return manager.getHandle(id)?.state ?? null;
   });
 
   ipcMain.handle(IPC.PAGE_APPLY_LAYOUT, (_e, id: string, preset: string, displayId?: number) => {
-    manager.applyLayout(String(id), preset as never, typeof displayId === 'number' ? displayId : undefined);
+    manager.applyLayout(
+      String(id),
+      preset as never,
+      typeof displayId === 'number' ? displayId : undefined,
+    );
     return true;
   });
 

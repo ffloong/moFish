@@ -14,6 +14,7 @@ MoFish turns websites into independent, controllable desktop windows, so you can
 - **Multi-display aware** — target the current screen or choose a specific display.
 - **Hide without stopping** — temporarily hide pages and restore them later.
 - **Persistent browser profile** — cookies, localStorage, IndexedDB, service workers, and login state survive restarts.
+- **Custom titles and borders** — rename page windows and use white, black, or transparent frames.
 - **Search and batch controls** — find pages by title or URL; show, hide, or close them together.
 
 ## Install and run

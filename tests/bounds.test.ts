@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { computeLayoutBounds, resolveTargetDisplay } from '../src/renderer/shared/utils/bounds';
+import { buildBorderStyle, normalizeBorderColor } from '../src/renderer/shared/utils/appearance';
 
 describe('layout bounds', () => {
   it('computes halves', () => {
@@ -70,5 +71,19 @@ describe('resolveTargetDisplay', () => {
 
   it('uses an explicitly selected display', () => {
     expect(resolveTargetDisplay(displays, 2, { x: 0, y: 0, width: 800, height: 600 })?.id).toBe(2);
+  });
+});
+
+describe('window appearance', () => {
+  it('normalizes supported border colors', () => {
+    expect(normalizeBorderColor(' #ffffff ')).toBe('#ffffff');
+    expect(normalizeBorderColor('red')).toBe('red');
+    expect(normalizeBorderColor('invalid; color')).toBe('transparent');
+    expect(normalizeBorderColor('', '#000000')).toBe('#000000');
+  });
+
+  it('builds an inset page border and removes transparent borders', () => {
+    expect(buildBorderStyle('#ffffff')).toContain('outline: 4px solid #ffffff');
+    expect(buildBorderStyle('transparent')).toBe('');
   });
 });
